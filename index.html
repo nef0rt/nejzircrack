@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neizzir — Black Russia</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@500;700;900&family=Inter:wght@400;500;600;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a28;
+            --border: #2a2a3a;
+            --accent: #00e5ff;
+            --accent2: #7c4dff;
+            --green: #00e676;
+            --red: #ff1744;
+            --yellow: #ffea00;
+            --text: #e0e0e0;
+            --text2: #888;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== BACKGROUND ===== */
+        .bg-grid {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+        }
+
+        .bg-glow {
+            position: fixed;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .bg-glow.g1 { background: var(--accent); top: -200px; left: -100px; }
+        .bg-glow.g2 { background: var(--accent2); bottom: -200px; right: -100px; }
+
+        /* ===== KEY SCREEN ===== */
+        #keyScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+        }
+
+        .key-container {
+            text-align: center;
+            max-width: 460px;
+            width: 90%;
+        }
+
+        .key-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: 6px;
+        }
+
+        .key-subtitle {
+            color: var(--text2);
+            font-size: 14px;
+            margin-bottom: 40px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .key-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 28px;
+        }
+
+        .key-box h3 {
+            font-size: 16px;
+            color: var(--text2);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .key-input-wrap {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .key-input-wrap svg {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text2);
+            width: 20px; height: 20px;
+        }
+
+        #keyInput {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 18px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #keyInput::placeholder {
+            color: #444;
+            letter-spacing: 2px;
+            font-size: 14px;
+            text-transform: none;
+        }
+
+        #keyInput:focus {
+            border-color: var(--accent);
+        }
+
+        #activateBtn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 1px;
+        }
+
+        #activateBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0,229,255,0.3);
+        }
+
+        #activateBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        #keyError {
+            margin-top: 14px;
+            font-size: 13px;
+            color: var(--red);
+            min-height: 20px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .key-hint {
+            margin-top: 24px;
+            font-size: 12px;
+            color: var(--text2);
+        }
+
+        .key-hint a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loadScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 99;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: var(--bg);
+        }
+
+        .loader-ring {
+            width: 60px; height: 60px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 24px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loader-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--accent);
+        }
+
+        .loader-steps {
+            margin-top: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text2);
+            text-align: left;
+            line-height: 2;
+        }
+
+        .loader-steps .done { color: var(--green); }
+        .loader-steps .active { color: var(--accent); }
+
+        /* ===== MAIN APP ===== */
+        #mainApp {
+            display: none;
+            height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Title bar */
+        .titlebar {
+            height: 38px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            -webkit-app-region: drag;
+        }
+
+        .titlebar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .titlebar-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 2px;
+        }
+
+        .titlebar-ver {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text2);
+        }
+
+        .titlebar-user {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--green);
+        }
+
+        .titlebar-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .titlebar-btns span {
+            width: 12px; height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .btn-min { background: var(--yellow); }
+        .btn-max { background: var(--green); }
+        .btn-close { background: var(--red); }
+
+        /* Layout */
+        .app-body {
+            display: flex;
+            height: calc(100vh - 38px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-section {
+            padding: 0 16px;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text2);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px;
+            color: var(--text2);
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(0,229,255,0.05);
+            color: var(--text);
+        }
+
+        .sidebar-item.active {
+            background: rgba(0,229,255,0.08);
+            color: var(--accent);
+            border-left-color: var(--accent);
+        }
+
+        .sidebar-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+        .sidebar-spacer { flex: 1; }
+
+        .sidebar-status {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            margin-bottom: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .status-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        .status-dot.green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .status-dot.yellow { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
+
+        /* Content */
+        .content {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        .content::-webkit-scrollbar { width: 6px; }
+        .content::-webkit-scrollbar-track { background: var(--surface); }
+        .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .tab-page { display: none; }
+        .tab-page.active { display: block; }
+
+        .page-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+
+        .page-desc {
+            font-size: 13px;
+            color: var(--text2);
+            margin-bottom: 24px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title svg { width: 16px; height: 16px; color: var(--accent); }
+
+        /* Toggle */
+        .option-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .option-row:last-child { border-bottom: none; }
+
+        .option-label {
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .option-label small {
+            font-size: 11px;
+            color: var(--text2);
+        }
+
+        .toggle {
+            width: 42px;
+            height: 22px;
+            background: var(--surface2);
+            border: 2px solid var(--border);
+            border-radius: 11px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 14px; height: 14px;
+            background: var(--text2);
+            border-radius: 50%;
+            top: 2px; left: 2px;
+            transition: all 0.3s;
+        }
+
+        .toggle.on {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .toggle.on::after {
+            left: 22px;
+            background: #fff;
+        }
+
+        /* Slider */
+        .slider-row {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .slider-row:last-child { border-bottom: none; }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .slider-value {
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            -webkit-appearance: none;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px; height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0,229,255,0.4);
+        }
+
+        /* Button */
+        .action-btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(0,229,255,0.3);
+        }
+
+        .action-btn.red {
+            background: linear-gradient(135deg, #ff1744, #d50000);
+        }
+
+        .action-btn.green {
+            background: linear-gradient(135deg, #00e676, #00c853);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        /* Console */
+        .console {
+            background: #0d0d14;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            height: 160px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        .console::-webkit-scrollbar { width: 4px; }
+        .console::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .log-info { color: var(--accent); }
+        .log-success { color: var(--green); }
+        .log-warn { color: var(--yellow); }
+        .log-error { color: var(--red); }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 250px;
+        }
+
+        .toast.success { border-left: 3px solid var(--green); }
+        .toast.error { border-left: 3px solid var(--red); }
+        .toast.info { border-left: 3px solid var(--accent); }
+
+        @keyframes toastIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(10px); }
+        }
+
+        /* Key info card */
+        .key-info-card {
+            background: linear-gradient(135deg, rgba(0,229,255,0.1), rgba(124,77,255,0.1));
+            border: 1px solid rgba(0,229,255,0.2);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .key-info-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .key-info-icon {
+            width: 40px; height: 40px;
+            background: rgba(0,229,255,0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .key-info-text h4 {
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .key-info-text span {
+            font-size: 11px;
+            color: var(--text2);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .key-badge {
+            padding: 4px 12px;
+            background: rgba(0,230,118,0.15);
+            color: var(--green);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in { animation: fadeIn 0.5s ease; }
+    </style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow g1"></div>
+<div class="bg-glow g2"></div>
+
+<!-- ===== KEY SCREEN ===== -->
+<div id="keyScreen">
+    <div class="key-container fade-in">
+        <div class="key-logo">NEIZZIR</div>
+        <div class="key-subtitle">Black Russia — Crack Free v2.1</div>
+
+        <div class="key-box">
+            <h3>🔐 Введите ключ активации</h3>
+
+            <div class="key-input-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+                </svg>
+                <input type="text" id="keyInput" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off" spellcheck="false">
+            </div>
+
+            <button id="activateBtn" onclick="validateKey()">АКТИВИРОВАТЬ</button>
+
+            <div id="keyError"></div>
+        </div>
+
+        <p class="key-hint">
+            Нет ключа? Получи бесплатно в
+            <a href="https://t.me/FraZzerNFTBot" target="_blank">@FraZzerNFTBot</a>
+        </p>
+    </div>
+</div>
+
+<!-- ===== LOADING SCREEN ===== -->
+<div id="loadScreen">
+    <div class="loader-ring"></div>
+    <div class="loader-text">Инжектирование...</div>
+    <div class="loader-steps" id="loadSteps"></div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="mainApp">
+    <!-- Title bar -->
+    <div class="titlebar">
+        <div class="titlebar-left">
+            <span class="titlebar-logo">NEIZZIR</span>
+            <span class="titlebar-ver">v2.1 crack</span>
+        </div>
+        <div class="titlebar-user" id="titleUser">⬤ connected</div>
+        <div class="titlebar-btns">
+            <span class="btn-min"></span>
+            <span class="btn-max"></span>
+            <span class="btn-close" onclick="location.reload()"></span>
+        </div>
+    </div>
+
+    <div class="app-body">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Категории</div>
+            </div>
+
+            <div class="sidebar-item active" onclick="switchTab('player', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+                Игрок
+            </div>
+            <div class="sidebar-item" onclick="switchTab('weapon', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                Оружие
+            </div>
+            <div class="sidebar-item" onclick="switchTab('vehicle', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0M17 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 0 1 2 2v4h-2"/><line x1="5" y1="17" x2="15" y2="17"/></svg>
+                Транспорт
+            </div>
+            <div class="sidebar-item" onclick="switchTab('visual', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Визуал
+            </div>
+            <div class="sidebar-item" onclick="switchTab('misc', this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Разное
+            </div>
+
+            <div class="sidebar-spacer"></div>
+
+            <div class="sidebar-status">
+                <div class="status-row">
+                    <span><span class="status-dot green"></span> Injected</span>
+                    <span style="color:var(--green)">OK</span>
+                </div>
+                <div class="status-row">
+                    <span><span class="status-dot green"></span> Anti-cheat</span>
+                    <span style="color:var(--green)">Bypass</span>
+                </div>
+                <div class="status-row">
+                    <span><span class="status-dot yellow"></span> Ping</span>
+                    <span id="pingValue" style="color:var(--yellow)">32ms</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content">
+
+            <!-- KEY INFO -->
+            <div class="key-info-card">
+                <div class="key-info-left">
+                    <div class="key-info-icon">🔑</div>
+                    <div class="key-info-text">
+                        <h4 id="welcomeName">Добро пожаловать</h4>
+                        <span id="activeKey">XXXX-XXXX</span>
+                    </div>
+                </div>
+                <div class="key-badge">ACTIVE</div>
+            </div>
+
+            <!-- PLAYER TAB -->
+            <div class="tab-page active" id="tab-player">
+                <div class="page-title">Игрок</div>
+                <div class="page-desc">Настройки персонажа и перемещения</div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+                        Основные
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">God Mode<small>Бессмертие персонажа</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'God Mode')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Infinite Stamina<small>Бесконечная выносливость</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Infinite Stamina')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">No Fall Damage<small>Без урона от падения</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'No Fall Damage')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Anti-AFK<small>Защита от кика за AFK</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Anti-AFK')"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                        Скорость
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span>Speed Hack</span>
+                            <span class="slider-value" id="speedVal">1.0x</span>
+                        </div>
+                        <input type="range" min="1" max="10" step="0.5" value="1" oninput="updateSlider('speedVal', this.value + 'x', 'Speed Hack → ' + this.value + 'x')">
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span>Jump Height</span>
+                            <span class="slider-value" id="jumpVal">1.0x</span>
+                        </div>
+                        <input type="range" min="1" max="8" step="0.5" value="1" oninput="updateSlider('jumpVal', this.value + 'x', 'Jump Height → ' + this.value + 'x')">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Телепорт
+                    </div>
+                    <div class="btn-group">
+                        <button class="action-btn" onclick="doAction('TP → Garage')">🏠 Гараж</button>
+                        <button class="action-btn" onclick="doAction('TP → Casino')">🎰 Казино</button>
+                        <button class="action-btn" onclick="doAction('TP → Bank')">🏦 Банк</button>
+                        <button class="action-btn" onclick="doAction('TP → Hospital')">🏥 Больница</button>
+                        <button class="action-btn" onclick="doAction('TP → Airport')">✈️ Аэропорт</button>
+                        <button class="action-btn" onclick="doAction('TP → Waypoint')">📍 К метке</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEAPON TAB -->
+            <div class="tab-page" id="tab-weapon">
+                <div class="page-title">Оружие</div>
+                <div class="page-desc">Настройки стрельбы и прицеливания</div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                        Аимбот
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Aimbot<small>Автоматическое прицеливание</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Aimbot')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Silent Aim<small>Невидимый аим</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Silent Aim')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">No Recoil<small>Без отдачи</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'No Recoil')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">No Spread<small>Без разброса</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'No Spread')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Infinite Ammo<small>Бесконечные патроны</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Infinite Ammo')"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                        Урон
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span>Damage Multiplier</span>
+                            <span class="slider-value" id="dmgVal">1.0x</span>
+                        </div>
+                        <input type="range" min="1" max="50" step="1" value="1" oninput="updateSlider('dmgVal', this.value + 'x', 'Damage → ' + this.value + 'x')">
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span>Fire Rate</span>
+                            <span class="slider-value" id="fireVal">1.0x</span>
+                        </div>
+                        <input type="range" min="1" max="20" step="1" value="1" oninput="updateSlider('fireVal', this.value + 'x', 'Fire Rate → ' + this.value + 'x')">
+                    </div>
+                </div>
+            </div>
+
+            <!-- VEHICLE TAB -->
+            <div class="tab-page" id="tab-vehicle">
+                <div class="page-title">Транспорт</div>
+                <div class="page-desc">Машины, мотоциклы и авиация</div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0M17 17m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0"/></svg>
+                        Настройки
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Vehicle God Mode<small>Бессмертие транспорта</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Vehicle God Mode')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Nitro Boost<small>Бесконечный нитро</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Nitro Boost')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Fly Hack<small>Летающий транспорт</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Fly Hack')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Seatbelt<small>Без вылета из машины</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Seatbelt')"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+                        Скорость транспорта
+                    </div>
+                    <div class="slider-row">
+                        <div class="slider-header">
+                            <span>Vehicle Speed</span>
+                            <span class="slider-value" id="vspeedVal">1.0x</span>
+                        </div>
+                        <input type="range" min="1" max="20" step="1" value="1" oninput="updateSlider('vspeedVal', this.value + 'x', 'Vehicle Speed → ' + this.value + 'x')">
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">🚗 Спавн транспорта</div>
+                    <div class="btn-group">
+                        <button class="action-btn" onclick="doAction('Spawn → Lamborghini')">🏎️ Lambo</button>
+                        <button class="action-btn" onclick="doAction('Spawn → Ferrari')">🏎️ Ferrari</button>
+                        <button class="action-btn" onclick="doAction('Spawn → BMW M5')">🚗 BMW M5</button>
+                        <button class="action-btn" onclick="doAction('Spawn → Helicopter')">🚁 Вертолёт</button>
+                        <button class="action-btn" onclick="doAction('Spawn → Tank')">🔫 Танк</button>
+                        <button class="action-btn" onclick="doAction('Spawn → Jet')">✈️ Истребитель</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISUAL TAB -->
+            <div class="tab-page" id="tab-visual">
+                <div class="page-title">Визуал</div>
+                <div class="page-desc">ESP, Wallhack и визуальные эффекты</div>
+
+                <div class="card">
+                    <div class="card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        ESP
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Player ESP<small>Контуры игроков сквозь стены</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Player ESP')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Box ESP<small>Рамки вокруг игроков</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Box ESP')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Name ESP<small>Имена над головами</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Name ESP')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Health Bar<small>Полоска здоровья</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Health Bar')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Tracers<small>Линии к игрокам</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Tracers')"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">🎨 Визуальные настройки</div>
+                    <div class="option-row">
+                        <div class="option-label">Wallhack<small>Видеть сквозь стены</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Wallhack')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Night Vision<small>Ночное зрение</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Night Vision')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">No Fog<small>Убрать туман</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'No Fog')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MISC TAB -->
+            <div class="tab-page" id="tab-misc">
+                <div class="page-title">Разное</div>
+                <div class="page-desc">Деньги, функции и настройки</div>
+
+                <div class="card">
+                    <div class="card-title">💰 Деньги</div>
+                    <div class="btn-group">
+                        <button class="action-btn green" onclick="doAction('Money Drop $10,000')">💵 $10K</button>
+                        <button class="action-btn green" onclick="doAction('Money Drop $100,000')">💵 $100K</button>
+                        <button class="action-btn green" onclick="doAction('Money Drop $1,000,000')">💵 $1M</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">⚡ Функции</div>
+                    <div class="option-row">
+                        <div class="option-label">Anti-Ban<small>Защита от бана</small></div>
+                        <div class="toggle on" onclick="toggleOption(this, 'Anti-Ban')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Stream Proof<small>Скрыть от записи экрана</small></div>
+                        <div class="toggle on" onclick="toggleOption(this, 'Stream Proof')"></div>
+                    </div>
+                    <div class="option-row">
+                        <div class="option-label">Admin Detect Alert<small>Предупреждение о админе</small></div>
+                        <div class="toggle" onclick="toggleOption(this, 'Admin Alert')"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">🔴 Опасные действия</div>
+                    <div class="btn-group">
+                        <button class="action-btn red" onclick="doAction('Kick All Players')">👢 Кикнуть всех</button>
+                        <button class="action-btn red" onclick="doAction('Crash Server')">💥 Крашнуть сервер</button>
+                        <button class="action-btn red" onclick="doAction('Unban Self')">🔓 Разбанить себя</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-title">📋 Консоль</div>
+                    <div class="console" id="console"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toasts -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+    const API_URL = 'http://localhost:5000';
+    let currentUser = '';
+    let currentKey = '';
+
+    // ===== KEY SYSTEM =====
+
+    // format input
+    const keyInput = document.getElementById('keyInput');
+    keyInput.addEventListener('input', function(e) {
+        let v = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        if (v.length > 4) {
+            v = v.substring(0, 4) + '-' + v.substring(4, 8);
+        }
+        this.value = v;
+    });
+
+    keyInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') validateKey();
+    });
+
+    async function validateKey() {
+        const key = keyInput.value.trim().toUpperCase();
+        const errEl = document.getElementById('keyError');
+        const btn = document.getElementById('activateBtn');
+
+        if (!key || key.length < 9) {
+            errEl.textContent = '⚠ Введите полный ключ в формате XXXX-XXXX';
+            shakeInput();
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'ПРОВЕРКА...';
+        errEl.textContent = '';
+
+        try {
+            const resp = await fetch(`${API_URL}/api/validate?key=${encodeURIComponent(key)}`);
+            const data = await resp.json();
+
+            if (data.valid) {
+                currentUser = data.name || 'User';
+                currentKey = key;
+                showLoadScreen();
+            } else {
+                errEl.textContent = '❌ Неверный ключ. Получи ключ в @FraZzerNFTBot';
+                shakeInput();
+                btn.disabled = false;
+                btn.textContent = 'АКТИВИРОВАТЬ';
+            }
+        } catch (err) {
+            errEl.textContent = '⚠ Нет связи с сервером. Запустите bot.py';
+            btn.disabled = false;
+            btn.textContent = 'АКТИВИРОВАТЬ';
+        }
+    }
+
+    function shakeInput() {
+        keyInput.style.borderColor = 'var(--red)';
+        keyInput.style.animation = 'none';
+        keyInput.offsetHeight;
+        keyInput.style.animation = 'shake 0.4s ease';
+        setTimeout(() => {
+            keyInput.style.borderColor = 'var(--border)';
+        }, 1000);
+    }
+
+    // ===== LOADING SCREEN =====
+
+    const loadSteps = [
+        'Подключение к серверу...',
+        'Проверка лицензии...',
+        'Обход античита...',
+        'Загрузка модулей...',
+        'Инжект в процесс...',
+        'Патч памяти...',
+        'Инициализация ESP...',
+        'Готово!'
+    ];
+
+    function showLoadScreen() {
+        document.getElementById('keyScreen').style.display = 'none';
+        const ls = document.getElementById('loadScreen');
+        ls.style.display = 'flex';
+
+        const stepsEl = document.getElementById('loadSteps');
+        let i = 0;
+
+        function nextStep() {
+            if (i >= loadSteps.length) {
+                setTimeout(showMainApp, 500);
+                return;
+            }
+
+            let html = '';
+            for (let j = 0; j <= i; j++) {
+                if (j < i) {
+                    html += `<div class="done">✓ ${loadSteps[j]}</div>`;
+                } else {
+                    html += `<div class="active">► ${loadSteps[j]}</div>`;
+                }
+            }
+            stepsEl.innerHTML = html;
+            i++;
+            setTimeout(nextStep, 400 + Math.random() * 600);
+        }
+
+        nextStep();
+    }
+
+    // ===== MAIN APP =====
+
+    function showMainApp() {
+        document.getElementById('loadScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        document.getElementById('titleUser').textContent = `⬤ ${currentUser}`;
+        document.getElementById('welcomeName').textContent = `Привет, ${currentUser}!`;
+        document.getElementById('activeKey').textContent = currentKey;
+
+        addLog('info', `Neizzir v2.1 Crack Free loaded`);
+        addLog('success', `Key: ${currentKey} — Valid`);
+        addLog('success', `Welcome, ${currentUser}`);
+        addLog('info', 'Anti-Ban: ENABLED');
+        addLog('info', 'Stream Proof: ENABLED');
+        addLog('success', 'Ready to use');
+
+        // Fake ping
+        setInterval(() => {
+            const ping = Math.floor(20 + Math.random() * 60);
+            document.getElementById('pingValue').textContent = ping + 'ms';
+        }, 3000);
+    }
+
+    // ===== TABS =====
+
+    function switchTab(tab, el) {
+        document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.add('active');
+        el.classList.add('active');
+    }
+
+    // ===== TOGGLES =====
+
+    function toggleOption(el, name) {
+        el.classList.toggle('on');
+        const state = el.classList.contains('on');
+        showToast(state ? 'success' : 'error', `${name}: ${state ? 'ON' : 'OFF'}`);
+        addLog(state ? 'success' : 'warn', `${name} → ${state ? 'Enabled' : 'Disabled'}`);
+    }
+
+    // ===== SLIDERS =====
+
+    function updateSlider(id, val, logMsg) {
+        document.getElementById(id).textContent = val;
+        addLog('info', logMsg);
+    }
+
+    // ===== ACTIONS =====
+
+    function doAction(name) {
+        showToast('info', `Executing: ${name}`);
+        addLog('success', `${name} — Done`);
+    }
+
+    // ===== CONSOLE =====
+
+    function addLog(type, msg) {
+        const c = document.getElementById('console');
+        const time = new Date().toLocaleTimeString('ru-RU');
+        const cls = type === 'info' ? 'log-info' : type === 'success' ? 'log-success' : type === 'warn' ? 'log-warn' : 'log-error';
+        c.innerHTML += `<div class="${cls}">[${time}] ${msg}</div>`;
+        c.scrollTop = c.scrollHeight;
+    }
+
+    // ===== TOASTS =====
+
+    function showToast(type, msg) {
+        const container = document.getElementById('toasts');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+        toast.innerHTML = `${icon} ${msg}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ===== SHAKE ANIMATION =====
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+
+</body>
+</html>
